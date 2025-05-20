@@ -1,0 +1,40 @@
+name: Tag, Release, and Build on Push
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  tag-release-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create Tag
+        run: |
+          git tag auto-${{ steps.vars.outputs.sha_short }}
+          git push origin auto-${{ steps.vars.outputs.sha_short }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: auto-${{ steps.vars.outputs.sha_short }}
+          name: Auto Release ${{ steps.vars.outputs.sha_short }}
+          body: "Automated release for commit ${{ steps.vars.outputs.sha_short }}."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t uhf-server:latest .
