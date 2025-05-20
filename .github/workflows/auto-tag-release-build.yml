@@ -44,7 +44,8 @@ jobs:
 
       - name: Tag Docker image for GHCR
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository }}:auto-${{ steps.vars.outputs.sha_short }}
+          REPO_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_ID=ghcr.io/$REPO_LC:auto-${{ steps.vars.outputs.sha_short }}
           docker tag uhf-server:latest $IMAGE_ID
           echo "IMAGE_ID=$IMAGE_ID" >> $GITHUB_ENV
 
